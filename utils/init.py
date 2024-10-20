@@ -55,9 +55,16 @@ def init_loader(config):
     return train_loader, val_loader, test_loader, mapper
 
 
+# def init_model(config, num_classes):
+#     imported_module = f"models.{config['train']['model']}"
+#     model = getattr(importlib.import_module(imported_module), "SLModel")(num_classes)
+#     return model
+
 def init_model(config, num_classes):
-    imported_module = f"models.{config['train']['model']}"
-    model = getattr(importlib.import_module(imported_module), "SLModel")(num_classes)
+    model_name = config["train"]["model"]
+    model = getattr(importlib.import_module(f"utils.model"), model_name)(
+        num_classes
+    )
     return model
 
 

@@ -11,7 +11,7 @@ dataset:
     seed: 3
 
 train:
-  model: SimpleModel # each model must come with its pipeline
+  model: SL_VGG16 # each model must come with its pipeline
   transform: SimpleTransform
   loader_config:
     batch_size: 8
