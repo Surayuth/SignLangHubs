@@ -27,9 +27,6 @@ train:
     params:
       lr: 0.001
       momentum: 0.9
-  metrics: # metrics to logs
-    - avg_val_loss 
-    - accuracy
   eval_metric: avg_val_loss # metric used to select best model
   scheduler:
     name: StepLR

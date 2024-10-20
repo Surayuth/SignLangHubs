@@ -12,6 +12,7 @@ def get_lr(optimizer):
 def train_one_epoch(train_loader, model, loss_fn, optimizer, device, train_progbar):
     model.train()
     running_loss = 0
+    correct = 0
 
     for inputs, labels in train_progbar:
         inputs = inputs.to(device)
@@ -28,31 +29,42 @@ def train_one_epoch(train_loader, model, loss_fn, optimizer, device, train_progb
 
         running_loss += loss.item()
 
+        predicts = torch.argmax(outputs, 1)
+        correct += (predicts == labels).sum().item()
+
         train_progbar.set_postfix(loss=loss.item())
 
     train_metrics = {
-        "avg_train_loss": running_loss / len(train_loader)
+        "avg_train_loss": running_loss / len(train_loader),
+        "avg_train_acc": correct / len(train_loader.dataset) 
     }
     return train_metrics
 
 
 def val_one_epoch(val_loader, model, loss_fn, device, val_progbar):
     model.eval()
-    running_vloss = 0
+    running_loss = 0
+    correct = 0
 
     with torch.no_grad():
-        for vinputs, vlabels in val_progbar:
-            vinputs = vinputs.to(device)
-            vlabels = vlabels.to(device)
-            voutputs = model(vinputs)
-            vloss = loss_fn(voutputs, vlabels)
-            running_vloss += vloss.item()
+        for inputs, labels in val_progbar:
+            inputs = inputs.to(device)
+            labels = labels.to(device)
+            outputs = model(inputs)
 
-            val_progbar.set_postfix(loss=vloss.item())
+            loss = loss_fn(outputs, labels)
+
+            running_loss += loss.item()
+
+            predicts = torch.argmax(outputs, 1)
+            correct += (predicts == labels).sum().item()
+
+            val_progbar.set_postfix(loss=loss.item())
     
-    avg_val_loss = running_vloss / len(val_loader)
+    avg_val_loss = running_loss / len(val_loader)
     val_metrics = {
-        "avg_val_loss": avg_val_loss
+        "avg_val_loss": avg_val_loss,
+        "avg_val_acc": correct / len(val_loader.dataset)
     }
     return val_metrics
 
