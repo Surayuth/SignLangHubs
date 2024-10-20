@@ -3,6 +3,10 @@ import mlflow
 from tqdm import tqdm
 from pathlib import Path
 
+def get_lr(optimizer):
+    for param_group in optimizer.param_groups:
+        return param_group['lr']
+
 def train_one_epoch(train_loader, model, loss_fn, optimizer, device, train_progbar):
     model.train()
     running_loss = 0
@@ -44,7 +48,7 @@ def val_one_epoch(val_loader, model, loss_fn, device, val_progbar):
     return running_vloss / len(val_loader)
 
 
-def train(train_loader, val_loader, model, loss_fn, optimizer, max_epochs, device, log_cfg):
+def train(train_loader, val_loader, model, loss_fn, optimizer, scheduler, max_epochs, device, log_cfg):
     model.to(device)
 
     best_epoch = 1
@@ -62,6 +66,7 @@ def train(train_loader, val_loader, model, loss_fn, optimizer, max_epochs, devic
         val_progbar = tqdm(val_loader, desc=f"Val Epoch {epoch}/{max_epochs}", leave=False, ncols=150)
         avg_val_loss = val_one_epoch(val_loader, model, loss_fn, device, val_progbar)
 
+        mlflow.log_metric("lr", get_lr(optimizer), step=epoch)
         mlflow.log_metric("avg_train_loss", avg_train_loss, step=epoch)
         mlflow.log_metric("avg_val_loss", avg_val_loss, step=epoch)
         
@@ -71,6 +76,8 @@ def train(train_loader, val_loader, model, loss_fn, optimizer, max_epochs, devic
             # log best model
             if log_cfg["best"]:
                 torch.save(model.state_dict(), artifact_uri / "best_model.pth")
+
+        scheduler.step()
 
     # log last model
     if log_cfg["last"]:

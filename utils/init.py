@@ -75,3 +75,14 @@ def init_opt(model, config):
         model, **opt_cfg["params"]
     )
     return optimizer
+
+
+def init_scheduler(optimizer, config):
+    if "scheduler" in config["train"]:
+        scheduler_cfg = config["train"]["scheduler"]
+        scheduler = getattr(importlib.import_module(f"utils.scheduler"), scheduler_cfg["name"])(
+            optimizer, **scheduler_cfg["params"]
+        )
+    else:
+        scheduler = None
+    return scheduler

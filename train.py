@@ -3,7 +3,7 @@ import torch
 import mlflow
 import argparse
 from utils.train import train
-from utils.init import init_loader, init_model, init_loss, init_opt
+from utils.init import init_loader, init_model, init_loss, init_opt, init_scheduler
 
 # Config validation function
 def validate_config(config):
@@ -41,6 +41,7 @@ if __name__ == "__main__":
     model = init_model(config, len(mapper))
     loss_fn = init_loss(config)
     optimizer = init_opt(model, config)
+    scheduler = init_scheduler(optimizer, config)
 
     # MLflow experiment setup
     exp_cfg = config["tracking"]
@@ -64,4 +65,4 @@ if __name__ == "__main__":
         # Training process
         max_epochs = config["train"]["max_epochs"]
         log_cfg = exp_cfg["log_model"]
-        train(train_loader, val_loader, model, loss_fn, optimizer, max_epochs, device, log_cfg)
+        train(train_loader, val_loader, model, loss_fn, optimizer, scheduler, max_epochs, device, log_cfg)
