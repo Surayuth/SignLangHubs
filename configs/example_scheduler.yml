@@ -31,6 +31,11 @@ train:
     - avg_val_loss 
     - accuracy
   eval_metric: avg_val_loss # metric used to select best model
+  scheduler:
+    name: StepLR
+    params:
+      step_size: 3
+      gamma: 0.1
   max_epochs: 5
 
 tracking:
@@ -42,5 +47,3 @@ tracking:
   log_model:
     best: True
     last: True
-  
-

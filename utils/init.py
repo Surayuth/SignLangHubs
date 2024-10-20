@@ -4,11 +4,13 @@ import importlib
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
 
+
 def init_mapper(dataset_src):
     paths = glob(str(dataset_src / "*/*"))
     labels = list(set([Path(p).parent.name for p in paths]))
-    mapper = {str(label):i for i, label in enumerate(labels)}
+    mapper = {str(label): i for i, label in enumerate(labels)}
     return mapper
+
 
 def init_loader(config):
     # create train, val, test dataset
@@ -55,9 +57,7 @@ def init_loader(config):
 
 def init_model(config, num_classes):
     imported_module = f"models.{config['train']['model']}"
-    model = getattr(
-        importlib.import_module(imported_module), "SLModel"
-    )(num_classes)
+    model = getattr(importlib.import_module(imported_module), "SLModel")(num_classes)
     return model
 
 
@@ -76,13 +76,33 @@ def init_opt(model, config):
     )
     return optimizer
 
+class Scheduler:
+    def __init__(self, optimizer, config):
+        self.optimizer = optimizer
 
-def init_scheduler(optimizer, config):
-    if "scheduler" in config["train"]:
-        scheduler_cfg = config["train"]["scheduler"]
-        scheduler = getattr(importlib.import_module(f"utils.scheduler"), scheduler_cfg["name"])(
-            optimizer, **scheduler_cfg["params"]
-        )
-    else:
-        scheduler = None
-    return scheduler
+        if "scheduler" in config["train"]:
+            sch_cfg = config["train"]["scheduler"]
+            self.scheduler = getattr(
+                importlib.import_module(f"utils.scheduler"), sch_cfg["name"]
+            )(self.optimizer, **sch_cfg["params"])
+
+            if "update_metric" in sch_cfg:
+                self.update_metric = sch_cfg["update_metric"]
+            else:
+                self.update_metric = None
+        else:
+            self.scheduler = None
+            self.update_metric = None
+    
+    def step(self, metrics):
+        if self.scheduler is not None:
+            if self.update_metric is None:
+                self.scheduler.step()
+            else:
+                if self.update_metric in metrics:
+                    self.scheduler.step(metrics[self.update_metric])
+                else:
+                    raise NotImplemented
+        else:
+            pass
+
