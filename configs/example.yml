@@ -1,0 +1,42 @@
+dataset:
+  class: SimpleDataset # pytorch dataset class
+  split_method: train_val_test
+  transform: SimpleTransform
+  params:
+    src: ./datasets/asl_dataset
+    # stratify
+    train_ratio: 0.5
+    val_ratio: 0.2
+    test_ratio: 0.3
+    seed: 3
+
+train:
+  model: SimpleModel # each model must come with its pipeline
+  transform: SimpleTransform
+  loader_config:
+    batch_size: 8
+    num_workers: 2
+    shuffle: True
+    persistent_workers: True
+  loss_fn:
+    name: CE
+    params:
+      reduction: mean
+  optimizer:
+    name: SGD
+    params:
+      lr: 0.001
+      momentum: 0.9
+  max_epochs: 5
+
+tracking:
+  uri: ./mlruns
+  tags: 
+    SL: ASL
+  exp_name: tmp_exp
+  run_name: tmp_run
+  log_model:
+    best: True
+    last: True
+  
+
